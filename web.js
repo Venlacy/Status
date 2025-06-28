@@ -10,7 +10,7 @@ const websites = [
     },
     {
         name: "Venlacyの博客",
-        url: "https://venlacy.top/pan"
+        url: "https://venlacy.top/blog"
     },
     {
         name: "GitHub",
