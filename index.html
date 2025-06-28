@@ -11,11 +11,12 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
         
         body {
-            background: #0a0e23; /* 深蓝黑色背景 */
-            color: #e0e0e0;
+            background: var(--bg-color);
+            color: var(--text-color);
             min-height: 100vh;
             padding: 20px;
         }
@@ -30,13 +31,13 @@
             text-align: center;
             padding: 30px 0;
             margin-bottom: 30px;
-            border-bottom: 1px solid #1e2a4a;
+            border-bottom: 1px solid var(--border-color);
         }
         
         h1 {
             font-size: 2.8rem;
             margin-bottom: 10px;
-            color: #4d8eff; /* 亮蓝色标题 */
+            color: var(--primary-color);
         }
         
         .subtitle {
@@ -45,7 +46,7 @@
             max-width: 600px;
             margin: 0 auto;
             line-height: 1.6;
-            color: #a0b4d8;
+            color: var(--secondary-text);
         }
         
         .stats-container {
@@ -57,26 +58,26 @@
         }
         
         .stat-card {
-            background: #121a33;
+            background: var(--card-bg);
             border-radius: 10px;
             padding: 20px;
             min-width: 200px;
             text-align: center;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid #1e2a4a;
+            border: 1px solid var(--border-color);
         }
         
         .stat-value {
             font-size: 2.5rem;
             font-weight: 700;
             margin: 10px 0;
-            color: #4d8eff;
+            color: var(--primary-color);
         }
         
         .stat-label {
             font-size: 1rem;
             opacity: 0.8;
-            color: #a0b4d8;
+            color: var(--secondary-text);
         }
         
         .cards-container {
@@ -87,18 +88,18 @@
         }
         
         .card {
-            background: #121a33;
+            background: var(--card-bg);
             border-radius: 10px;
             overflow: hidden;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            border: 1px solid #1e2a4a;
+            border: 1px solid var(--border-color);
         }
         
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-            background: #15203b;
+            background: var(--card-hover);
         }
         
         .card-header {
@@ -106,7 +107,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid #1e2a4a;
+            border-bottom: 1px solid var(--border-color);
         }
         
         .website-name {
@@ -115,7 +116,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: #d0d8f0;
+            color: var(--card-text);
         }
         
         .status-indicator {
@@ -147,7 +148,7 @@
         
         .website-url {
             font-size: 0.9rem;
-            color: #8a9cc4;
+            color: var(--secondary-text);
             margin-bottom: 15px;
             word-break: break-all;
         }
@@ -155,31 +156,31 @@
         .status-message {
             padding: 8px 12px;
             border-radius: 6px;
-            background: rgba(30, 42, 74, 0.5);
+            background: var(--status-bg);
             font-size: 0.9rem;
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #d0d8f0;
+            color: var(--card-text);
         }
         
         .card-footer {
             padding: 15px 20px;
-            background: #0e1529;
+            background: var(--card-footer);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-top: 1px solid #1e2a4a;
+            border-top: 1px solid var(--border-color);
         }
         
         .last-checked {
             font-size: 0.85rem;
-            color: #8a9cc4;
+            color: var(--secondary-text);
         }
         
         .visit-btn {
-            background: #1e2a4a;
-            color: #d0d8f0;
+            background: var(--btn-bg);
+            color: var(--btn-text);
             border: none;
             padding: 8px 15px;
             border-radius: 30px;
@@ -192,8 +193,8 @@
         }
         
         .visit-btn:hover {
-            background: #2a3a62;
-            color: #ffffff;
+            background: var(--btn-hover);
+            color: var(--btn-text-hover);
         }
         
         .loading {
@@ -206,8 +207,8 @@
         .spinner {
             width: 50px;
             height: 50px;
-            border: 5px solid rgba(30, 42, 74, 0.3);
-            border-top: 5px solid #4d8eff;
+            border: 5px solid var(--spinner-bg);
+            border-top: 5px solid var(--primary-color);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -226,8 +227,8 @@
         }
         
         .btn {
-            background: #1e2a4a;
-            color: #d0d8f0;
+            background: var(--btn-bg);
+            color: var(--btn-text);
             border: none;
             padding: 12px 25px;
             border-radius: 30px;
@@ -240,8 +241,8 @@
         }
         
         .btn:hover {
-            background: #2a3a62;
-            color: #ffffff;
+            background: var(--btn-hover);
+            color: var(--btn-text-hover);
             transform: translateY(-2px);
         }
         
@@ -252,8 +253,36 @@
         .last-updated {
             text-align: center;
             margin-top: 30px;
-            color: #8a9cc4;
+            color: var(--secondary-text);
             font-size: 0.9rem;
+        }
+        
+        .theme-switcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        
+        .theme-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+        
+        .theme-btn:hover {
+            transform: scale(1.1);
+            background: var(--btn-hover);
         }
         
         @media (max-width: 768px) {
@@ -273,10 +302,60 @@
             .stat-card {
                 width: 100%;
             }
+            
+            .theme-switcher {
+                bottom: 10px;
+                right: 10px;
+            }
+            
+            .theme-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
+
+        /* 主题变量 */
+        :root {
+            /* 蓝黑主题 */
+            --bg-color: #0a0e23;
+            --card-bg: #121a33;
+            --card-hover: #15203b;
+            --card-footer: #0e1529;
+            --border-color: #1e2a4a;
+            --primary-color: #4d8eff;
+            --text-color: #e0e0e0;
+            --card-text: #d0d8f0;
+            --secondary-text: #8a9cc4;
+            --status-bg: rgba(30, 42, 74, 0.5);
+            --btn-bg: #1e2a4a;
+            --btn-text: #d0d8f0;
+            --btn-hover: #2a3a62;
+            --btn-text-hover: #ffffff;
+            --spinner-bg: rgba(30, 42, 74, 0.3);
+        }
+
+        .dark-theme {
+            /* 深色主题 */
+            --bg-color: #FFFFFF;
+            --card-bg: #A7E6FF;
+            --card-hover: #252525;
+            --card-footer: #181818;
+            --border-color: #333333;
+            --primary-color: #bb86fc;
+            --text-color: #e0e0e0;
+            --card-text: #e0e0e0;
+            --secondary-text: #a0a0a0;
+            --status-bg: rgba(51, 51, 51, 0.5);
+            --btn-bg: #333333;
+            --btn-text: #e0e0e0;
+            --btn-hover: #424242;
+            --btn-text-hover: #ffffff;
+            --spinner-bg: rgba(51, 51, 51, 0.3);
         }
     </style>
 </head>
-<body>
+<body class="blue-dark-theme">
     <div class="container">
         <header>
             <h1><i class="fas fa-heartbeat"></i> 网站状态监控面板</h1>
@@ -321,6 +400,13 @@
         </div>
     </div>
 
+    <!-- 主题切换按钮 -->
+    <div class="theme-switcher">
+        <button class="theme-btn" id="theme-toggle">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+
     <!-- 网站数据文件 -->
     <script src="web.js"></script>
     
@@ -333,10 +419,37 @@
         const refreshBtn = document.getElementById('refresh-btn');
         const testAllBtn = document.getElementById('test-all-btn');
         const lastUpdatedElement = document.getElementById('last-updated');
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const body = document.body;
         
         // 初始化统计
         let onlineCount = 0;
         let offlineCount = 0;
+        
+        // 主题切换功能
+        function toggleTheme() {
+            if (body.classList.contains('dark-theme')) {
+                body.classList.remove('dark-theme');
+                themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+                localStorage.setItem('theme', 'blue-dark');
+            } else {
+                body.classList.add('dark-theme');
+                themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        // 检查本地存储的主题设置
+        function checkTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-theme');
+                themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                body.classList.remove('dark-theme');
+                themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        }
         
         // 格式化日期时间
         function formatDateTime(date) {
@@ -638,6 +751,12 @@
         
         // 初始化页面
         function initPage() {
+            // 检查并设置主题
+            checkTheme();
+            
+            // 添加主题切换事件
+            themeToggleBtn.addEventListener('click', toggleTheme);
+            
             // 渲染初始状态
             renderAllWebsites();
             
