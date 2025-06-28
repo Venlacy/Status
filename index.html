@@ -1,40 +1,659 @@
-// 网站数据
-const websites = [
-    {
-        name: "GitHub",
-        url: "https://github.com"
-    },
-    {
-        name: "Google",
-        url: "https://google.com"
-    },
-    {
-        name: "MDN Web Docs",
-        url: "https://developer.mozilla.org"
-    },
-    {
-        name: "Stack Overflow",
-        url: "https://stackoverflow.com"
-    },
-    {
-        name: "百度",
-        url: "https://baidu.com",
-        isChinese: true
-    },
-    {
-        name: "知乎",
-        url: "https://zhihu.com",
-        isChinese: true
-    },
-    {
-        name: "哔哩哔哩",
-        url: "https://bilibili.com",
-        isChinese: true
-    },
-    {
-        name: "淘宝",
-        url: "https://taobao.com",
-        isChinese: true
-    },
-    {
-       
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网站状态监控面板</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #0a0e23; /* 深蓝黑色背景 */
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #1e2a4a;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #4d8eff; /* 亮蓝色标题 */
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+            color: #a0b4d8;
+        }
+        
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: #121a33;
+            border-radius: 10px;
+            padding: 20px;
+            min-width: 200px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid #1e2a4a;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+            color: #4d8eff;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.8;
+            color: #a0b4d8;
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .card {
+            background: #121a33;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid #1e2a4a;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            background: #15203b;
+        }
+        
+        .card-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #1e2a4a;
+        }
+        
+        .website-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #d0d8f0;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online {
+            background: #4ade80;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+        }
+        
+        .status-offline {
+            background: #f87171;
+            box-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
+        }
+        
+        .status-loading {
+            background: #fbbf24;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .website-url {
+            font-size: 0.9rem;
+            color: #8a9cc4;
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+        
+        .status-message {
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: rgba(30, 42, 74, 0.5);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #d0d8f0;
+        }
+        
+        .card-footer {
+            padding: 15px 20px;
+            background: #0e1529;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #1e2a4a;
+        }
+        
+        .last-checked {
+            font-size: 0.85rem;
+            color: #8a9cc4;
+        }
+        
+        .visit-btn {
+            background: #1e2a4a;
+            color: #d0d8f0;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .visit-btn:hover {
+            background: #2a3a62;
+            color: #ffffff;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(30, 42, 74, 0.3);
+            border-top: 5px solid #4d8eff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: #1e2a4a;
+            color: #d0d8f0;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: #2a3a62;
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+        
+        .btn i {
+            font-size: 1.1rem;
+        }
+        
+        .last-updated {
+            text-align: center;
+            margin-top: 30px;
+            color: #8a9cc4;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .stats-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .stat-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-heartbeat"></i> 网站状态监控面板</h1>
+            <p class="subtitle">实时监控您的网站可用性，通过直观的卡片和状态指示器显示网站运行状况</p>
+        </header>
+        
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-label">监控网站总数</div>
+                <div class="stat-value" id="total-sites">0</div>
+                <div class="stat-label">个网站</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">正常运行</div>
+                <div class="stat-value" id="online-sites">0</div>
+                <div class="stat-label">个网站</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">异常网站</div>
+                <div class="stat-value" id="offline-sites">0</div>
+                <div class="stat-label">个网站</div>
+            </div>
+        </div>
+        
+        <div class="cards-container" id="websites-container">
+            <!-- 网站卡片将通过JavaScript动态生成 -->
+        </div>
+        
+        <div class="controls">
+            <button class="btn" id="refresh-btn">
+                <i class="fas fa-sync-alt"></i> 刷新状态
+            </button>
+            <button class="btn" id="test-all-btn">
+                <i class="fas fa-bolt"></i> 测试所有网站
+            </button>
+        </div>
+        
+        <div class="last-updated" id="last-updated">
+            最后更新: 正在加载...
+        </div>
+    </div>
+
+    <!-- 网站数据文件 -->
+    <script src="web.js"></script>
+    
+    <script>
+        // 获取DOM元素
+        const websitesContainer = document.getElementById('websites-container');
+        const totalSitesElement = document.getElementById('total-sites');
+        const onlineSitesElement = document.getElementById('online-sites');
+        const offlineSitesElement = document.getElementById('offline-sites');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const testAllBtn = document.getElementById('test-all-btn');
+        const lastUpdatedElement = document.getElementById('last-updated');
+        
+        // 初始化统计
+        let onlineCount = 0;
+        let offlineCount = 0;
+        
+        // 格式化日期时间
+        function formatDateTime(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+        
+        // 创建网站卡片
+        function createWebsiteCard(website) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.id = `card-${website.name.replace(/\s+/g, '-')}`;
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="website-name">
+                        <span class="status-indicator ${website.status === 'online' ? 'status-online' : 
+                            website.status === 'offline' ? 'status-offline' : 'status-loading'}"></span>
+                        ${website.name}
+                    </div>
+                    <span class="response-time">${website.responseTime || '--'}ms</span>
+                </div>
+                <div class="card-body">
+                    <div class="website-url">${website.url}</div>
+                    <div class="status-message">
+                        ${website.status === 'online' ? 
+                            '<i class="fas fa-check-circle"></i> 运行正常' : 
+                         website.status === 'offline' ? 
+                            '<i class="fas fa-exclamation-circle"></i> 无法访问' : 
+                            '<i class="fas fa-spinner fa-spin"></i> 检测中...'}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="last-checked">最后检查: ${website.lastChecked || '--'}</div>
+                    <button class="visit-btn" data-url="${website.url}">
+                        <i class="fas fa-external-link-alt"></i> 访问
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            totalSitesElement.textContent = websites.length;
+            onlineSitesElement.textContent = onlineCount;
+            offlineSitesElement.textContent = offlineCount;
+        }
+        
+        // 检测国内网站
+        async function checkChineseWebsite(website, startTime) {
+            try {
+                // 方法1：使用国内友好的代理
+                const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(website.url)}`;
+                const response = await fetch(proxyUrl, {
+                    method: 'GET',
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        'Accept': 'text/html',
+                        'Range': 'bytes=0-1000' // 只获取前1000字节
+                    }
+                });
+                
+                // 检查响应状态
+                if (response.ok) {
+                    return {
+                        status: 'online',
+                        responseTime: Date.now() - startTime,
+                        lastChecked: formatDateTime(new Date())
+                    };
+                }
+                
+                // 方法2：备用检测
+                return await backupCheck(website, startTime);
+                
+            } catch (error) {
+                return {
+                    status: 'offline',
+                    responseTime: null,
+                    lastChecked: formatDateTime(new Date())
+                };
+            }
+        }
+        
+        // 检测国际网站
+        async function checkInternationalWebsite(website, startTime) {
+            try {
+                const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(website.url)}`, {
+                    method: 'HEAD',
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    }
+                });
+                
+                if (response.ok || response.status < 400) {
+                    return {
+                        status: 'online',
+                        responseTime: Date.now() - startTime,
+                        lastChecked: formatDateTime(new Date())
+                    };
+                }
+                
+                // 备用检测
+                return await backupCheck(website, startTime);
+                
+            } catch (error) {
+                return {
+                    status: 'offline',
+                    responseTime: null,
+                    lastChecked: formatDateTime(new Date())
+                };
+            }
+        }
+        
+        // 备用检测方法
+        async function backupCheck(website, startTime) {
+            try {
+                // 尝试直接加载网站图标(favicon)
+                const img = new Image();
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = website.url + '/favicon.ico?t=' + Date.now();
+                });
+                
+                return {
+                    status: 'online',
+                    responseTime: Date.now() - startTime,
+                    lastChecked: formatDateTime(new Date())
+                };
+                
+            } catch (error) {
+                return {
+                    status: 'offline',
+                    responseTime: null,
+                    lastChecked: formatDateTime(new Date())
+                };
+            }
+        }
+        
+        // 改进的网站状态检测方法
+        async function checkWebsiteStatus(website) {
+            const startTime = Date.now();
+            
+            try {
+                // 国内网站使用特殊检测方法
+                if (website.isChinese) {
+                    return await checkChineseWebsite(website, startTime);
+                }
+                
+                // 国际网站使用标准检测
+                return await checkInternationalWebsite(website, startTime);
+                
+            } catch (error) {
+                return {
+                    status: 'offline',
+                    responseTime: null,
+                    lastChecked: formatDateTime(new Date())
+                };
+            }
+        }
+        
+        // 更新网站卡片状态
+        function updateWebsiteCard(website, statusInfo) {
+            const cardId = `card-${website.name.replace(/\s+/g, '-')}`;
+            const card = document.getElementById(cardId);
+            
+            if (card) {
+                // 更新状态指示器
+                const indicator = card.querySelector('.status-indicator');
+                indicator.className = 'status-indicator ' + 
+                    (statusInfo.status === 'online' ? 'status-online' : 'status-offline');
+                
+                // 更新响应时间
+                card.querySelector('.response-time').textContent = 
+                    statusInfo.responseTime ? `${statusInfo.responseTime}ms` : '--';
+                
+                // 更新状态消息
+                const statusMessage = card.querySelector('.status-message');
+                statusMessage.innerHTML = statusInfo.status === 'online' ?
+                    '<i class="fas fa-check-circle"></i> 运行正常' : 
+                    '<i class="fas fa-exclamation-circle"></i> 无法访问';
+                
+                // 更新最后检查时间
+                card.querySelector('.last-checked').textContent = 
+                    `最后检查: ${statusInfo.lastChecked}`;
+            }
+        }
+        
+        // 更新网站状态
+        function updateWebsiteStatus(website, statusInfo) {
+            const prevStatus = website.status;
+            website.status = statusInfo.status;
+            website.responseTime = statusInfo.responseTime;
+            website.lastChecked = statusInfo.lastChecked;
+            
+            // 更新计数
+            if (prevStatus === 'online') onlineCount--;
+            if (prevStatus === 'offline') offlineCount--;
+            
+            if (website.status === 'online') {
+                onlineCount++;
+            } else {
+                offlineCount++;
+            }
+            
+            updateWebsiteCard(website, statusInfo);
+            updateStats();
+        }
+        
+        // 渲染所有网站卡片
+        function renderAllWebsites() {
+            websitesContainer.innerHTML = '';
+            onlineCount = 0;
+            offlineCount = 0;
+            
+            websites.forEach(website => {
+                // 设置初始状态
+                if (!website.status) website.status = 'loading';
+                
+                const card = createWebsiteCard(website);
+                websitesContainer.appendChild(card);
+                
+                if (website.status === 'online') {
+                    onlineCount++;
+                } else if (website.status === 'offline') {
+                    offlineCount++;
+                }
+            });
+            
+            updateStats();
+            
+            // 添加访问按钮事件
+            document.querySelectorAll('.visit-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const url = this.getAttribute('data-url');
+                    window.open(url, '_blank');
+                });
+            });
+        }
+        
+        // 测试单个网站
+        async function testWebsite(website) {
+            // 设置检测中状态
+            website.status = 'loading';
+            updateWebsiteCard(website, {
+                status: 'loading',
+                responseTime: null,
+                lastChecked: '检测中...'
+            });
+            
+            // 检测状态
+            const statusInfo = await checkWebsiteStatus(website);
+            updateWebsiteStatus(website, statusInfo);
+            
+            return statusInfo;
+        }
+        
+        // 测试所有网站
+        async function testAllWebsites() {
+            // 显示加载状态
+            lastUpdatedElement.textContent = `最后更新: 检测中...`;
+            
+            // 重置计数
+            onlineCount = 0;
+            offlineCount = 0;
+            
+            // 并行测试所有网站（最多同时6个）
+            const parallelLimit = 6;
+            const total = websites.length;
+            let currentIndex = 0;
+            
+            const runNext = async () => {
+                if (currentIndex >= total) return;
+                
+                const website = websites[currentIndex];
+                currentIndex++;
+                
+                await testWebsite(website);
+                await runNext();
+            };
+            
+            // 启动并行测试
+            const promises = [];
+            for (let i = 0; i < Math.min(parallelLimit, total); i++) {
+                promises.push(runNext());
+            }
+            
+            await Promise.all(promises);
+            
+            // 更新最后更新时间
+            lastUpdatedElement.textContent = `最后更新: ${formatDateTime(new Date())}`;
+        }
+        
+        // 初始化页面
+        function initPage() {
+            // 渲染初始状态
+            renderAllWebsites();
+            
+            // 测试所有网站
+            testAllWebsites();
+            
+            // 添加按钮事件
+            refreshBtn.addEventListener('click', testAllWebsites);
+            testAllBtn.addEventListener('click', testAllWebsites);
+            
+            // 每5分钟自动刷新一次
+            setInterval(testAllWebsites, 5 * 60 * 1000);
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>
