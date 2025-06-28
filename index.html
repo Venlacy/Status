@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>网站状态监控仪表板</title>
+    <title>网站状态监控</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -298,15 +298,6 @@
             margin: 0 auto 20px;
         }
 
-        .error-message {
-            background: rgba(244, 67, 54, 0.1);
-            border: 1px solid var(--error-color);
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
-        }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -318,7 +309,7 @@
         <header>
             <h1>
                 <i class="fas fa-globe-americas"></i>
-                网站状态监控仪表板
+                网站状态监控
             </h1>
             <div class="controls">
                 <button class="theme-toggle" id="themeToggle">
@@ -335,7 +326,7 @@
         <div class="stats">
             <div class="stat-card">
                 <h3>总网站数</h3>
-                <div class="stat-value" id="totalSites">0</div>
+                <div class="stat-value" id="totalSites">8</div>
             </div>
             <div class="stat-card">
                 <h3>在线网站</h3>
@@ -351,20 +342,29 @@
             </div>
         </div>
 
-        <div id="errorContainer"></div>
-
         <div class="cards-grid" id="cardsContainer">
+            <!-- 卡片将由JavaScript动态生成 -->
             <div class="loading">
                 <div class="loading-spinner"></div>
-                <p>正在加载网站列表和状态...</p>
+                <p>正在加载网站状态...</p>
             </div>
         </div>
     </div>
 
     <script>
+        // 网站数据（实际使用时应存储在单独的web.js文件中）
+        // 格式：{"名称", "网址"}
+        const websites = [
+            {"name": "Venlacyの博客", "url": "https://venlacy.top/blog"},
+            {"name": "Venlacyの主页", "url": "https://home.venlacy.top/"},
+            {"name": "Venlacyの网盘", "url": "https://g.venlacy.top/"},
+            {"name": "GitHub", "url": "https://github.com"},
+            {"name": "谷歌", "url": "https://www.google.com"},
+            {"name": "示例(离线)", "url": "https://this-website-does-not-exist-12345.com"}
+        ];
+
         // DOM元素
         const cardsContainer = document.getElementById('cardsContainer');
-        const errorContainer = document.getElementById('errorContainer');
         const totalSitesEl = document.getElementById('totalSites');
         const onlineSitesEl = document.getElementById('onlineSites');
         const offlineSitesEl = document.getElementById('offlineSites');
@@ -373,22 +373,17 @@
         const refreshBtn = document.getElementById('refreshBtn');
 
         // 状态统计
-        let websites = [];
         let onlineCount = 0;
         let offlineCount = 0;
         let lastCheckedTime = null;
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
-            // 加载保存的主题
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                themeToggle.innerHTML = '<i class="fas fa-sun"></i> 切换主题';
-            }
+            totalSitesEl.textContent = websites.length;
+            checkAllWebsites();
             
-            // 加载网站列表并开始检测
-            loadWebsites();
+            // 每5分钟自动刷新一次
+            setInterval(checkAllWebsites, 5 * 60 * 1000);
         });
 
         // 主题切换
@@ -405,6 +400,13 @@
             }
         });
 
+        // 加载保存的主题
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i> 切换主题';
+        }
+
         // 刷新按钮
         refreshBtn.addEventListener('click', () => {
             checkAllWebsites();
@@ -415,60 +417,8 @@
             }, 1000);
         });
 
-        // 从web.js加载网站列表
-        async function loadWebsites() {
-            try {
-                const response = await fetch('web.js');
-                if (!response.ok) {
-                    throw new Error(`无法加载web.js文件 (状态: ${response.status})`);
-                }
-                
-                const jsContent = await response.text();
-                
-                // 解析web.js内容
-                const match = jsContent.match(/const websites = (\[.*?\]);/s);
-                if (!match) {
-                    throw new Error('无法在web.js中找到有效的网站列表');
-                }
-                
-                // 安全地解析JSON
-                websites = JSON.parse(match[1].replace(/'/g, '"'));
-                
-                // 验证网站列表格式
-                if (!Array.isArray(websites) || !websites.every(site => site.name && site.url)) {
-                    throw new Error('网站列表格式不正确，应为: [{"name":"网站1","url":"https://example.com"}, ...]');
-                }
-                
-                // 更新网站总数
-                totalSitesEl.textContent = websites.length;
-                
-                // 开始检测所有网站
-                checkAllWebsites();
-                
-                // 每5分钟自动刷新一次
-                setInterval(checkAllWebsites, 5 * 60 * 1000);
-            } catch (error) {
-                console.error('加载网站列表失败:', error);
-                showError(`无法加载网站列表: ${error.message}`);
-                cardsContainer.innerHTML = '';
-            }
-        }
-
-        // 显示错误信息
-        function showError(message) {
-            errorContainer.innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>错误:</strong> ${message}
-                    <p>请检查web.js文件是否存在且格式正确</p>
-                </div>
-            `;
-        }
-
         // 检测所有网站状态
         async function checkAllWebsites() {
-            if (!websites.length) return;
-            
             onlineCount = 0;
             offlineCount = 0;
             cardsContainer.innerHTML = '';
@@ -476,33 +426,28 @@
             lastCheckedTime = new Date();
             lastCheckedEl.textContent = lastCheckedTime.toLocaleTimeString();
             
-            // 创建所有网站的检查中状态卡片
-            websites.forEach(site => {
+            for (const site of websites) {
+                // 显示检查中状态
                 const card = createCard(site, 'checking');
                 cardsContainer.appendChild(card);
-            });
-            
-            // 并行检测所有网站状态
-            const checkPromises = websites.map(site => checkWebsiteStatus(site.url));
-            const results = await Promise.all(checkPromises);
-            
-            // 更新卡片状态
-            results.forEach((result, index) => {
-                const site = websites[index];
-                const card = cardsContainer.children[index];
                 
-                if (result.status) {
+                // 检测网站状态
+                const isOnline = await checkWebsiteStatus(site.url);
+                
+                // 更新状态
+                if (isOnline) {
                     onlineCount++;
                 } else {
                     offlineCount++;
                 }
                 
-                updateCard(card, site, result);
-            });
-            
-            // 更新统计
-            onlineSitesEl.textContent = onlineCount;
-            offlineSitesEl.textContent = offlineCount;
+                // 更新卡片
+                updateCard(card, site, isOnline);
+                
+                // 更新统计
+                onlineSitesEl.textContent = onlineCount;
+                offlineSitesEl.textContent = offlineCount;
+            }
         }
 
         // 检测单个网站状态
@@ -510,7 +455,7 @@
             try {
                 // 使用HEAD方法提高效率
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
                 
                 const startTime = performance.now();
                 const response = await fetch(url, {
@@ -529,39 +474,10 @@
                     responseTime: responseTime
                 };
             } catch (error) {
-                // 尝试使用GET方法作为备选方案
-                if (error.name === 'AbortError') {
-                    return {
-                        status: false,
-                        responseTime: 0
-                    };
-                }
-                
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 8000);
-                    
-                    const startTime = performance.now();
-                    const response = await fetch(url, {
-                        method: 'GET',
-                        mode: 'no-cors',
-                        signal: controller.signal
-                    });
-                    clearTimeout(timeoutId);
-                    
-                    const endTime = performance.now();
-                    const responseTime = endTime - startTime;
-                    
-                    return {
-                        status: true,
-                        responseTime: responseTime
-                    };
-                } catch (fallbackError) {
-                    return {
-                        status: false,
-                        responseTime: 0
-                    };
-                }
+                return {
+                    status: false,
+                    responseTime: 0
+                };
             }
         }
 
