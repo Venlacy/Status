@@ -1,28 +1,10 @@
-// 网站数据
 const websites = [
-    {
-        name: "Venlacyの主页",
-        url: "https://home.venlacy.top"
-    },
-    {
-        name: "Venlacyの网盘",
-        url: "https://g.venlacy.top"
-    },
-    {
-        name: "Venlacyの博客",
-        url: "https://venlacy.top/blog"
-    },
-    {
-        name: "GitHub",
-        url: "https://github.com"
-    },
-    {
-        name: "Google",
-        url: "https://google.com"
-    },
-    {
-        name: "哔哩哔哩",
-        url: "https://bilibili.com",
-        isChinese: true
-    }
+    {"name": "百度", "url": "https://www.baidu.com"},
+    {"name": "腾讯", "url": "https://www.qq.com"},
+    {"name": "阿里巴巴", "url": "https://www.alibaba.com"},
+    {"name": "京东", "url": "https://www.jd.com"},
+    {"name": "知乎", "url": "https://www.zhihu.com"},
+    {"name": "GitHub", "url": "https://github.com"},
+    {"name": "谷歌", "url": "https://www.google.com"},
+    {"name": "示例(离线)", "url": "https://this-website-does-not-exist-12345.com"}
 ];
