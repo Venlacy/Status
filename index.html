@@ -141,6 +141,11 @@
             box-shadow: 0 0 10px #f87171;
         }
         
+        .status-loading {
+            background: #fbbf24;
+            box-shadow: 0 0 10px #fbbf24;
+        }
+        
         .card-body {
             padding: 20px;
         }
@@ -150,6 +155,16 @@
             opacity: 0.7;
             margin-bottom: 15px;
             word-break: break-all;
+        }
+        
+        .status-message {
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .card-footer {
@@ -273,19 +288,19 @@
         <div class="stats-container">
             <div class="stat-card">
                 <div class="stat-label">监控网站总数</div>
-                <div class="stat-value" id="total-sites">8</div>
+                <div class="stat-value" id="total-sites">0</div>
                 <div class="stat-label">个网站</div>
             </div>
             
             <div class="stat-card">
                 <div class="stat-label">正常运行</div>
-                <div class="stat-value" id="online-sites">7</div>
+                <div class="stat-value" id="online-sites">0</div>
                 <div class="stat-label">个网站</div>
             </div>
             
             <div class="stat-card">
                 <div class="stat-label">异常网站</div>
-                <div class="stat-value" id="offline-sites">1</div>
+                <div class="stat-value" id="offline-sites">0</div>
                 <div class="stat-label">个网站</div>
             </div>
         </div>
@@ -341,19 +356,25 @@
         function createWebsiteCard(website) {
             const card = document.createElement('div');
             card.className = 'card';
+            card.id = `card-${website.name.replace(/\s+/g, '-')}`;
             card.innerHTML = `
                 <div class="card-header">
                     <div class="website-name">
-                        <span class="status-indicator ${website.status === 'online' ? 'status-online' : 'status-offline'}"></span>
+                        <span class="status-indicator ${website.status === 'online' ? 'status-online' : 
+                            website.status === 'offline' ? 'status-offline' : 'status-loading'}"></span>
                         ${website.name}
                     </div>
                     <span class="response-time">${website.responseTime || '--'}ms</span>
                 </div>
                 <div class="card-body">
                     <div class="website-url">${website.url}</div>
-                    <div class="status-message">${website.status === 'online' ? 
-                        '<i class="fas fa-check-circle"></i> 运行正常' : 
-                        '<i class="fas fa-exclamation-circle"></i> 无法访问'}</div>
+                    <div class="status-message">
+                        ${website.status === 'online' ? 
+                            '<i class="fas fa-check-circle"></i> 运行正常' : 
+                         website.status === 'offline' ? 
+                            '<i class="fas fa-exclamation-circle"></i> 无法访问' : 
+                            '<i class="fas fa-spinner fa-spin"></i> 检测中...'}
+                    </div>
                 </div>
                 <div class="card-footer">
                     <div class="last-checked">最后检查: ${website.lastChecked || '--'}</div>
@@ -372,27 +393,32 @@
             offlineSitesElement.textContent = offlineCount;
         }
         
-        // 检查单个网站状态
-        async function checkWebsiteStatus(website) {
-            const startTime = new Date().getTime();
-            
+        // 检测国内网站
+        async function checkChineseWebsite(website, startTime) {
             try {
-                // 使用CORS代理绕过跨域限制
-                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-                const response = await fetch(proxyUrl + website.url, {
-                    method: 'HEAD',
-                    mode: 'cors',
-                    cache: 'no-cache'
+                // 方法1：使用国内友好的代理
+                const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(website.url)}`;
+                const response = await fetch(proxyUrl, {
+                    method: 'GET',
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        'Accept': 'text/html',
+                        'Range': 'bytes=0-1000' // 只获取前1000字节
+                    }
                 });
                 
-                const endTime = new Date().getTime();
-                const responseTime = endTime - startTime;
+                // 检查响应状态
+                if (response.ok) {
+                    return {
+                        status: 'online',
+                        responseTime: Date.now() - startTime,
+                        lastChecked: formatDateTime(new Date())
+                    };
+                }
                 
-                return {
-                    status: response.ok ? 'online' : 'offline',
-                    responseTime: responseTime,
-                    lastChecked: formatDateTime(new Date())
-                };
+                // 方法2：备用检测
+                return await backupCheck(website, startTime);
+                
             } catch (error) {
                 return {
                     status: 'offline',
@@ -402,17 +428,130 @@
             }
         }
         
+        // 检测国际网站
+        async function checkInternationalWebsite(website, startTime) {
+            try {
+                const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(website.url)}`, {
+                    method: 'HEAD',
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    }
+                });
+                
+                if (response.ok || response.status < 400) {
+                    return {
+                        status: 'online',
+                        responseTime: Date.now() - startTime,
+                        lastChecked: formatDateTime(new Date())
+                    };
+                }
+                
+                // 备用检测
+                return await backupCheck(website, startTime);
+                
+            } catch (error) {
+                return {
+                    status: 'offline',
+                    responseTime: null,
+                    lastChecked: formatDateTime(new Date())
+                };
+            }
+        }
+        
+        // 备用检测方法
+        async function backupCheck(website, startTime) {
+            try {
+                // 尝试直接加载网站图标(favicon)
+                const img = new Image();
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = website.url + '/favicon.ico?t=' + Date.now();
+                });
+                
+                return {
+                    status: 'online',
+                    responseTime: Date.now() - startTime,
+                    lastChecked: formatDateTime(new Date())
+                };
+                
+            } catch (error) {
+                return {
+                    status: 'offline',
+                    responseTime: null,
+                    lastChecked: formatDateTime(new Date())
+                };
+            }
+        }
+        
+        // 改进的网站状态检测方法
+        async function checkWebsiteStatus(website) {
+            const startTime = Date.now();
+            
+            try {
+                // 国内网站使用特殊检测方法
+                if (website.isChinese) {
+                    return await checkChineseWebsite(website, startTime);
+                }
+                
+                // 国际网站使用标准检测
+                return await checkInternationalWebsite(website, startTime);
+                
+            } catch (error) {
+                return {
+                    status: 'offline',
+                    responseTime: null,
+                    lastChecked: formatDateTime(new Date())
+                };
+            }
+        }
+        
+        // 更新网站卡片状态
+        function updateWebsiteCard(website, statusInfo) {
+            const cardId = `card-${website.name.replace(/\s+/g, '-')}`;
+            const card = document.getElementById(cardId);
+            
+            if (card) {
+                // 更新状态指示器
+                const indicator = card.querySelector('.status-indicator');
+                indicator.className = 'status-indicator ' + 
+                    (statusInfo.status === 'online' ? 'status-online' : 'status-offline');
+                
+                // 更新响应时间
+                card.querySelector('.response-time').textContent = 
+                    statusInfo.responseTime ? `${statusInfo.responseTime}ms` : '--';
+                
+                // 更新状态消息
+                const statusMessage = card.querySelector('.status-message');
+                statusMessage.innerHTML = statusInfo.status === 'online' ?
+                    '<i class="fas fa-check-circle"></i> 运行正常' : 
+                    '<i class="fas fa-exclamation-circle"></i> 无法访问';
+                
+                // 更新最后检查时间
+                card.querySelector('.last-checked').textContent = 
+                    `最后检查: ${statusInfo.lastChecked}`;
+            }
+        }
+        
         // 更新网站状态
         function updateWebsiteStatus(website, statusInfo) {
+            const prevStatus = website.status;
             website.status = statusInfo.status;
             website.responseTime = statusInfo.responseTime;
             website.lastChecked = statusInfo.lastChecked;
+            
+            // 更新计数
+            if (prevStatus === 'online') onlineCount--;
+            if (prevStatus === 'offline') offlineCount--;
             
             if (website.status === 'online') {
                 onlineCount++;
             } else {
                 offlineCount++;
             }
+            
+            updateWebsiteCard(website, statusInfo);
+            updateStats();
         }
         
         // 渲染所有网站卡片
@@ -422,12 +561,15 @@
             offlineCount = 0;
             
             websites.forEach(website => {
+                // 设置初始状态
+                if (!website.status) website.status = 'loading';
+                
                 const card = createWebsiteCard(website);
                 websitesContainer.appendChild(card);
                 
                 if (website.status === 'online') {
                     onlineCount++;
-                } else {
+                } else if (website.status === 'offline') {
                     offlineCount++;
                 }
             });
@@ -443,23 +585,54 @@
             });
         }
         
+        // 测试单个网站
+        async function testWebsite(website) {
+            // 设置检测中状态
+            website.status = 'loading';
+            updateWebsiteCard(website, {
+                status: 'loading',
+                responseTime: null,
+                lastChecked: '检测中...'
+            });
+            
+            // 检测状态
+            const statusInfo = await checkWebsiteStatus(website);
+            updateWebsiteStatus(website, statusInfo);
+            
+            return statusInfo;
+        }
+        
         // 测试所有网站
         async function testAllWebsites() {
             // 显示加载状态
-            websitesContainer.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            lastUpdatedElement.textContent = `最后更新: 检测中...`;
             
             // 重置计数
             onlineCount = 0;
             offlineCount = 0;
             
-            // 测试每个网站
-            for (const website of websites) {
-                const statusInfo = await checkWebsiteStatus(website);
-                updateWebsiteStatus(website, statusInfo);
+            // 并行测试所有网站（最多同时6个）
+            const parallelLimit = 6;
+            const total = websites.length;
+            let currentIndex = 0;
+            
+            const runNext = async () => {
+                if (currentIndex >= total) return;
+                
+                const website = websites[currentIndex];
+                currentIndex++;
+                
+                await testWebsite(website);
+                await runNext();
+            };
+            
+            // 启动并行测试
+            const promises = [];
+            for (let i = 0; i < Math.min(parallelLimit, total); i++) {
+                promises.push(runNext());
             }
             
-            // 渲染结果
-            renderAllWebsites();
+            await Promise.all(promises);
             
             // 更新最后更新时间
             lastUpdatedElement.textContent = `最后更新: ${formatDateTime(new Date())}`;
@@ -467,11 +640,6 @@
         
         // 初始化页面
         function initPage() {
-            // 为所有网站添加初始状态
-            websites.forEach(website => {
-                website.status = 'loading';
-            });
-            
             // 渲染初始状态
             renderAllWebsites();
             
@@ -481,6 +649,9 @@
             // 添加按钮事件
             refreshBtn.addEventListener('click', testAllWebsites);
             testAllBtn.addEventListener('click', testAllWebsites);
+            
+            // 每5分钟自动刷新一次
+            setInterval(testAllWebsites, 5 * 60 * 1000);
         }
         
         // 页面加载完成后初始化
